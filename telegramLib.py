@@ -9,12 +9,12 @@ class TelegramBot:
         self.url = f"https://api.telegram.org/bot{token}"
 
         bot_info = self.getInfo()
+
         self.id = bot_info["id"]
         self.name = bot_info["first_name"]
         self.username = bot_info["username"]
 
         self.callbacks = {}
-
         self.offset = 0
 
     def _request(self, method, **kwargs):
@@ -23,11 +23,14 @@ class TelegramBot:
             timeout=35,
             **kwargs
         )
-        response.raise_for_status()
 
+        response.raise_for_status()
         result = response.json()
+
         if not result.get("ok"):
-            raise RuntimeError(result.get("description", "Error de Telegram"))
+            raise RuntimeError(
+                result.get("description", "Error de Telegram")
+            )
 
         return result["result"]
 
@@ -36,16 +39,19 @@ class TelegramBot:
             f"{self.url}/getMe",
             timeout=10
         )
-        response.raise_for_status()
 
+        response.raise_for_status()
         data = response.json()
+
         if not data.get("ok"):
-            raise RuntimeError(data.get("description", "Error de Telegram"))
+            raise RuntimeError(
+                data.get("description", "Error de Telegram")
+            )
 
         return data["result"]
 
-    def message(self, chat_id, text):
-        return Message(self, chat_id, text)
+    def message(self, chat_id, text, parse_mode="Markdown"):
+        return Message(self, chat_id, text, parse_mode)
 
     def sendMessage(self, chat_id, text):
         return self._request(
@@ -55,56 +61,81 @@ class TelegramBot:
                 "text": text
             }
         )
-        
+
     def _register_callback(self, function):
         callback_id = uuid.uuid4().hex
-
         self.callbacks[callback_id] = function
         return callback_id
 
     def _handle_callback(self, query):
         callback_id = query.get("data")
         function = self.callbacks.get(callback_id)
-        self._request(
-            "answerCallbackQuery",
-            json={"callback_query_id": query["id"]}
-        )
-
-        if function is None:
-            return
 
         message = query.get("message") or {}
         chat = message.get("chat") or {}
+        user = query.get("from") or {}
 
         context = CallbackContext(
             bot=self,
             chat_id=chat.get("id"),
-            user_id=query["from"]["id"],
+            user_id=user.get("id"),
+            username=user.get("username"),
+            name=user.get("first_name", "Desconocido"),
             data=callback_id,
             query=query
         )
 
         try:
-            function(context)
+            if function is not None:
+                function(context)
+
         except Exception as error:
             print(f"Error ejecutando callback: {error}")
 
-    def start(self):
-        print(f"Bot @{self.username} iniciado.")
+        finally:
+            if not context.answered:
+                try:
+                    context.answer()
+                except (
+                    requests.RequestException,
+                    RuntimeError,
+                    KeyError
+                ) as error:
+                    print(
+                        f"Error respondiendo al botón: {error}"
+                    )
+
+    def getMessage(self):
+        return self._request(
+            "getUpdates",
+            json={
+                "offset": self.offset,
+                "timeout": 30,
+                "allowed_updates": [
+                    "message",
+                    "callback_query"
+                ]
+            }
+        )
+
+    def start(self, startMsg="", commands=None):
+        commands = dict(commands or [])
+
+        normalized_commands = {}
+
+        for command, function in commands.items():
+            command = command.split("@")[0].strip()
+
+            if not command.startswith("/"):
+                command = "/" + command
+
+            normalized_commands[command.lower()] = function
+
+        print(startMsg)
 
         while True:
             try:
-                updates = self._request(
-                    "getUpdates",
-                    data={
-                        "offset": self.offset,
-                        "timeout": 30,
-                        "allowed_updates": [
-                            "message",
-                            "callback_query"
-                        ]
-                    }
-                )
+                updates = self.getMessage()
 
                 for update in updates:
                     self.offset = update["update_id"] + 1
@@ -113,9 +144,70 @@ class TelegramBot:
                         self._handle_callback(
                             update["callback_query"]
                         )
+                        continue
+
+                    msg = update.get("message")
+
+                    if msg is None:
+                        continue
+
+                    user = msg.get("from") or {}
+                    chat = msg.get("chat") or {}
+                    text = msg.get("text", "")
+
+                    name = user.get(
+                        "first_name", "Desconocido"
+                    )
+                    username = user.get("username")
+                    user_id = user.get("id")
+                    chat_id = chat.get("id")
+
+                    if not text.startswith("/"):
+                        continue
+
+                    command_text = text.split()[0]
+
+                    command_name = command_text.split("@")[0]
+
+                    target = (
+                        command_text.split("@", 1)[1]
+                        if "@" in command_text
+                        else None
+                    )
+
+                    if (
+                        target
+                        and target.lower() != self.username.lower()
+                    ):
+                        continue
+
+                    function = normalized_commands.get(
+                        command_name.lower()
+                    )
+
+                    if function is None:
+                        continue
+
+                    context = CommandContext(
+                        bot=self,
+                        chat_id=chat_id,
+                        user_id=user_id,
+                        message=msg,
+                        text=text,
+                        username=username,
+                        name=name,
+                        botName=self.name
+                    )
+
+                    try:
+                        function(context)
+                    except Exception as error:
+                        print(
+                            f"Error ejecutando comando "
+                            f"{command_name}: {error}"
+                        )
 
             except KeyboardInterrupt:
-                print("Bot detenido.")
                 break
 
             except requests.RequestException as error:
@@ -127,17 +219,61 @@ class TelegramBot:
                 time.sleep(2)
 
 
-class CallbackContext:
+class Context:
     def __init__(
-        self, bot, chat_id, user_id, data, query
+        self,
+        bot,
+        chat_id,
+        user_id,
+        username,
+        name
     ):
         self.bot = bot
         self.chat_id = chat_id
         self.user_id = user_id
+        self.username = username
+        self.name = name
+
+        self.botName = bot.name
+
+    def send(self, text):
+        if self.chat_id is None:
+            raise ValueError(
+                "Este contexto no tiene un chat asociado."
+            )
+
+        return self.bot.sendMessage(
+            self.chat_id,
+            text
+        )
+
+class CallbackContext(Context):
+    def __init__(
+        self,
+        bot,
+        chat_id,
+        user_id,
+        username,
+        name,
+        data,
+        query
+    ):
+        super().__init__(
+            bot=bot,
+            chat_id=chat_id,
+            user_id=user_id,
+            username=username,
+            name=name
+        )
+
         self.data = data
         self.query = query
+        self.answered = False
 
     def answer(self, text=None, show_alert=False):
+        if self.answered:
+            return None
+
         payload = {
             "callback_query_id": self.query["id"],
             "show_alert": show_alert
@@ -146,30 +282,62 @@ class CallbackContext:
         if text is not None:
             payload["text"] = text
 
-        return self.bot._request(
+        result = self.bot._request(
             "answerCallbackQuery",
             json=payload
         )
 
-    def send(self, text):
-        if self.chat_id is None:
-            raise ValueError("El callback no tiene un chat asociado.")
+        self.answered = True
+        return result
 
-        return self.bot.sendMessage(self.chat_id, text)
+class CommandContext(Context):
+    def __init__(
+        self,
+        bot,
+        chat_id,
+        user_id,
+        message,
+        text,
+        username,
+        name,
+        botName
+    ):
+        super().__init__(
+            bot=bot,
+            chat_id=chat_id,
+            user_id=user_id,
+            username=username,
+            name=name
+        )
 
+        self.message = message
+        self.text = text
+        self.botName = botName
+
+        parts = text.split()
+
+        self.command = (
+            parts[0].split("@")[0]
+            if parts else ""
+        )
+
+        self.args = parts[1:]
 
 class Message:
-    def __init__(self, bot, chat_id, text):
+    def __init__(self, bot, chat_id, text, parse_mode: str = "Markdown"):
         self.bot = bot
         self.chat_id = chat_id
         self.text = text
         self.keyboard = []
+        self.parse_mode = parse_mode
 
     def buttons(self, data):
         row = []
 
         for text, function in data:
-            callback_id = self.bot._register_callback(function)
+            callback_id = self.bot._register_callback(
+                function
+            )
 
             row.append({
                 "text": text,
@@ -182,7 +350,8 @@ class Message:
     def send(self):
         payload = {
             "chat_id": self.chat_id,
-            "text": self.text
+            "text": self.text,
+            "parse_mode": self.parse_mode
         }
 
         if self.keyboard:
