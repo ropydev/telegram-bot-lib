@@ -30,7 +30,7 @@ pip install -r requirements.txt
 2. Ejecuta `/newbot` y sigue las instrucciones.
 3. Copia el token que BotFather te proporciona.
 
-## Inicio rápido: crear comando /start
+## Crear comandos
 
 ```python
 import telegramLib # Importa la libreria
@@ -39,7 +39,7 @@ bot = telegramLib.TelegramBot("TuToken") # Genera el bot
 
 
 def start(ctx):
-    bot.message(ctx.chat_id, f"Hola, {ctx.name}. Yo soy {ctx.botName}, un bot construido en la libreria https://github.com/ropydev/telegram-bot-lib creada por Ronald (ropydev)").send() # Envia un mensaje cada que se use la funcion
+    bot.message(ctx.chat_id, f"Hola, {ctx.name}. Yo soy {ctx.botName}, un bot construido en la libreria https://github.com/ropydev/telegram-bot-lib creada por Ronald (ropydev)").send() # Crea la funcion del comando
 
 commands = [
     ("/start", start) # Indica que el comando /start llamara a la funcion start()
@@ -51,6 +51,28 @@ bot.start("Bot iniciado", commands=commands) # Inicia el bot y le indica su list
 ### Resultado
 
 <img src="./examples/example_code.png">
+
+## Crear comandos con argumentos
+
+```python
+import telegramLib # Importa la libreria
+
+bot = telegramLib.TelegramBot("TuToken") # Genera el bot
+
+def saludarOtro(ctx, name):
+    bot.message(ctx.chat_id, f"<b>Hola, {name}</b>", parse_mode="HTML").send() # Mandar mensaje (necesita que el comando tenga un parametro, ejemplo: /saludarotro Ronald)
+
+commands = [
+    ("/saludarotro", saludarOtro) # Indica que el comando /start llamara a la funcion start()
+]
+
+bot.start("Bot iniciado", commands=commands) # Inicia el bot y le indica su lista de comandos
+```
+(La unica diferencia son los argumentos de la funcion del comando, ctx (el obligatorio) y los demas son libres (en caso de que el comando no reciba argumentos, se rellenaran con None, en caso de haber mas argumentos de los necesarios se obtendran los primeros n))
+
+Ejemplos:
+
+<img src="./examples/command_with_args.png">
 
 ## Crear un mensaje con botones inline
 

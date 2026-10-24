@@ -1,6 +1,7 @@
 import requests
 import uuid
 import time
+import inspect
 
 
 class TelegramBot:
@@ -200,7 +201,14 @@ class TelegramBot:
                     )
 
                     try:
-                        function(context)
+                        args = text.split()
+                        args.pop(0)
+                        nargs = len(list(inspect.signature(function).parameters.keys()))-1
+                        args = args[:nargs]
+                        falt = nargs - len(args)
+                        if falt > 0:
+                            args.extend([None] * falt)
+                        function(context, *args)
                     except Exception as error:
                         print(
                             f"Error ejecutando comando "
@@ -297,7 +305,7 @@ class CommandContext(Context):
         chat_id,
         user_id,
         message,
-        text,
+        text: str,
         username,
         name,
         botName
@@ -320,6 +328,10 @@ class CommandContext(Context):
             parts[0].split("@")[0]
             if parts else ""
         )
+
+        params = parts
+        params.pop(0)
+        self.params = params
 
         self.args = parts[1:]
 
