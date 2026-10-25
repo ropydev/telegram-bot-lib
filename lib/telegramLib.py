@@ -57,6 +57,9 @@ class TelegramBot:
     def sendPhoto(self, chat_id, photo, caption = ""):
         return SendPhoto(self, chat_id, photo, caption)
 
+    def sendAudio(self, chat_id, audio, caption=""):
+        return sendAudio(self, chat_id, audio, caption)
+
     def sendMessage(self, chat_id, text):
         return self._request(
             "sendMessage",
@@ -327,16 +330,9 @@ class CommandContext(Context):
 
         parts = text.split()
 
-        self.command = (
-            parts[0].split("@")[0]
-            if parts else ""
-        )
-
-        params = parts
-        params.pop(0)
-        self.params = params
-
-        self.args = parts[1:]
+        self.command = parts[0].split("@")[0] if parts else ""
+        self.params = parts[1:]
+        self.args = self.params.copy()
 
 class Message:
     def __init__(self, bot, chat_id, text):
@@ -408,5 +404,30 @@ class SendPhoto(Message):
 
         return self.bot._request(
             "sendPhoto",
+            json=payload
+        )
+
+class sendAudio(Message):
+    def __init__(self, bot, chat_id, audio, text):
+        self.bot = bot
+        self.chat_id = chat_id
+        self.text = text
+        self.keyboard = []
+        self.audio = audio
+
+    def send(self):
+        payload = {
+            "chat_id": self.chat_id,
+            "caption": self.text,
+            "audio": self.audio
+        }
+
+        if self.keyboard:
+            payload["reply_markup"] = {
+                "inline_keyboard": self.keyboard
+            }
+
+        return self.bot._request(
+            "sendAudio",
             json=payload
         )

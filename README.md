@@ -169,11 +169,32 @@ commands = [
 bot.start("Bot iniciado", commands=commands)
 ```
 
-Resultado:
+### Resultado:
 
 <img src="./examples/sendphoto.png">
 
 (tambien se le pueden atribuir botones y todo lo de los botones)
+
+## Enviar un audio atravez de un link
+```python
+from lib import telegramLib # importa la libreria
+
+bot = telegramLib.TelegramBot("TuToken") # conecta el bucle
+
+def start(ctx):
+    bot.sendAudio(ctx.chat_id, "https://pnb-freetoolsforweb.s3.us-east-2.amazonaws.com/samples/audio/mp3/sample-audio-5min-128kbps.mp3", "Hola mundo").send() # crea y envia el mensaje
+
+commands = [
+    ("/start", start) # establece la funcion start para el comando /start
+]
+bot.start("Bot iniciado", commands=commands) # inicia el bot
+```
+
+### Resultado
+
+<img src="./examples/sendaudio.png">
+
+La clase a la que pertenece el metodo sendAudio es hija de la clase Message (al igual que el metodo message y el metodo sendPhoto) asi que comparten el metodo buttons y send y permite que los audios, imagenes y mensajes tengan botones de la misma manera
 
 ## Usar el contexto
 
