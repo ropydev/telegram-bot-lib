@@ -51,23 +51,14 @@ class TelegramBot:
 
         return data["result"]
 
-    def message(self, chat_id, text, parse_mode="Markdown"):
+    def sendMessage(self, chat_id, text, parse_mode="Markdown"):
         return SendMessage(self, chat_id, text, parse_mode)
 
     def sendPhoto(self, chat_id, photo, caption = ""):
         return SendPhoto(self, chat_id, photo, caption)
 
     def sendAudio(self, chat_id, audio, caption=""):
-        return sendAudio(self, chat_id, audio, caption)
-
-    def sendMessage(self, chat_id, text):
-        return self._request(
-            "sendMessage",
-            json={
-                "chat_id": chat_id,
-                "text": text
-            }
-        )
+        return SendAudio(self, chat_id, audio, caption)
 
     def _register_callback(self, function):
         callback_id = uuid.uuid4().hex
@@ -407,7 +398,7 @@ class SendPhoto(Message):
             json=payload
         )
 
-class sendAudio(Message):
+class SendAudio(Message):
     def __init__(self, bot, chat_id, audio, text):
         self.bot = bot
         self.chat_id = chat_id

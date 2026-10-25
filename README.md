@@ -33,13 +33,13 @@ pip install -r requirements.txt
 ## Crear comandos
 
 ```python
-import telegramLib # Importa la libreria
+from lib import telegramLib # Importa la libreria
 
 bot = telegramLib.TelegramBot("TuToken") # Genera el bot
 
 
 def start(ctx):
-    bot.message(ctx.chat_id, f"Hola, {ctx.name}. Yo soy {ctx.botName}, un bot construido en la libreria https://github.com/ropydev/telegram-bot-lib creada por Ronald (ropydev)").send() # Crea la funcion del comando
+    bot.sendMessage(ctx.chat_id, f"Hola, {ctx.name}. Yo soy {ctx.botName}, un bot construido en la libreria https://github.com/ropydev/telegram-bot-lib creada por Ronald (ropydev)").send() # Crea la funcion del comando
 
 commands = [
     ("/start", start) # Indica que el comando /start llamara a la funcion start()
@@ -55,12 +55,12 @@ bot.start("Bot iniciado", commands=commands) # Inicia el bot y le indica su list
 ## Crear comandos con argumentos
 
 ```python
-import telegramLib # Importa la libreria
+from lib import telegramLib # Importa la libreria
 
 bot = telegramLib.TelegramBot("TuToken") # Genera el bot
 
 def saludarOtro(ctx, name):
-    bot.message(ctx.chat_id, f"<b>Hola, {name}</b>", parse_mode="HTML").send() # Mandar mensaje (necesita que el comando tenga un parametro, ejemplo: /saludarotro Ronald)
+    bot.sendMessage(ctx.chat_id, f"<b>Hola, {name}</b>", parse_mode="HTML").send() # Mandar mensaje (necesita que el comando tenga un parametro, ejemplo: /saludarotro Ronald)
 
 commands = [
     ("/saludarotro", saludarOtro) # Indica que el comando /start llamara a la funcion start()
@@ -76,18 +76,18 @@ Ejemplos:
 
 ## Crear un mensaje con botones inline
 
-El método `message(chat_id, text)` crea un objeto `Message`. Puedes encadenar `buttons()` y `send()`:
+El método `sendMessage(chat_id, text)` crea un objeto `Message`. Puedes encadenar `buttons()` y `send()`:
 
 ```python
-import telegramLib # importa la libreria
+from lib import telegramLib # importa la libreria
 
 bot = telegramLib.TelegramBot("TuToken") # Generar bot
 
 def saludar(ctx):
-    bot.message(ctx.chat_id, f"<b>Hola, {ctx.name}</b>", parse_mode="HTML").send() # Mandar mensaje en HTML
+    bot.sendMessage(ctx.chat_id, f"<b>Hola, {ctx.name}</b>", parse_mode="HTML").send() # Mandar mensaje en HTML
 
 def despedirse(ctx):
-    bot.message(ctx.chat_id, f"Adios, {ctx.name}").send() # Mandar mensaje
+    bot.sendMessage(ctx.chat_id, f"Adios, {ctx.name}").send() # Mandar mensaje
 
 def start(ctx):
     buttons = [
@@ -95,7 +95,7 @@ def start(ctx):
         ("Despedirse", despedirse)
     ] # indicador de botones y sus funciones
 
-    bot.message(ctx.chat_id, "Elija una opcion:").buttons(buttons).send() # Mensaje con botones
+    bot.sendMessage(ctx.chat_id, "Elija una opcion:").buttons(buttons).send() # Mensaje con botones
 
 commands = [
     ("/start", start)
@@ -114,18 +114,18 @@ bot.start("Bot iniciado", commands=commands) # inicia el bot e indica sus comand
 Cada llamada a `buttons()` agrega una nueva fila al teclado:
 
 ```python
-import telegramLib # importa la libreria
+from lib import telegramLib # importa la libreria
 
 bot = telegramLib.TelegramBot("TuToken") # Generar bot
 
 def saludar(ctx):
-    bot.message(ctx.chat_id, f"<b>Hola, {ctx.name}</b>", parse_mode="HTML").send() # Mandar mensaje en HTML
+    bot.sendMessage(ctx.chat_id, f"<b>Hola, {ctx.name}</b>", parse_mode="HTML").send() # Mandar mensaje en HTML
 
 def despedirse(ctx):
-    bot.message(ctx.chat_id, f"Adios, {ctx.name}").send() # Mandar mensaje
+    bot.sendMessage(ctx.chat_id, f"Adios, {ctx.name}").send() # Mandar mensaje
 
 def info(ctx):
-    bot.message(ctx.chat_id, f"Nombre: {ctx.name}\nUsername: {ctx.username}").send() # Mandar Info
+    bot.sendMessage(ctx.chat_id, f"Nombre: {ctx.name}\nUsername: {ctx.username}").send() # Mandar Info
 
 def start(ctx):
     buttons = [
@@ -136,7 +136,7 @@ def start(ctx):
         ("Info", info)
     ] # otra fila de botones
 
-    bot.message(ctx.chat_id, "Elija una opcion:")\
+    bot.sendMessage(ctx.chat_id, "Elija una opcion:")\
         .buttons(buttons)\
             .buttons(buttons1).send() # Mensaje con botones
 
@@ -205,7 +205,7 @@ Comunicarse con el bot y sus metodos
 Ejemplo:
 ```python
 def sendMessage(ctx):
-    ctx.bot.message("Hola").send()
+    ctx.bot.sendMessage("Hola").send()
 ```
 
 ### ctx.chat_id
@@ -213,7 +213,7 @@ Obtener el id del chat al q se le hizo la peticion
 Ejemplo:
 ```python
 def idMsg(ctx):
-    bot.message(f"El id del chat es {ctx.chat_id}")
+    bot.sendMessage(f"El id del chat es {ctx.chat_id}")
 
 # Salida:
 #    Bot: El id del chat es 192837465
@@ -224,7 +224,7 @@ Obtener el id del usuario q hizo la peticion
 Ejemplo:
 ```python
 def idMsg(ctx):
-    bot.message(f"Su id es {ctx.user_id}")
+    bot.sendMessage(f"Su id es {ctx.user_id}")
 ```
 
 ### ctx.username
@@ -232,7 +232,7 @@ Obtener el username del usuario q hizo la peticion
 Ejemplo:
 ```python
 def username(ctx):
-    bot.message(f"Su id es {ctx.username}")
+    bot.sendMessage(f"Su id es {ctx.username}")
 ```
 
 ### ctx.name
@@ -240,7 +240,7 @@ Obtener el nombre del usuario q hizo la peticion
 Ejemplo:
 ```python
 def name(ctx):
-    bot.message(f"Hola {ctx.username}")
+    bot.sendMessage(f"Hola {ctx.username}")
 ```
 
 ## Funciones
@@ -259,15 +259,15 @@ Propiedades:
 
 Devuelve el objeto con la información del bot que entrega el método `getMe` de Telegram.
 
-### `bot.message(chat_id, text).send()`
+### `bot.sendMessage(chat_id, text).send()`
 
 Crea un objeto `Message` para construir y enviar un mensaje con teclado inline opcional y envia el mensaje.
 
-### `bot.message(chat_id, text).buttons([])`
+### `bot.sendMessage(chat_id, text).buttons([])`
 
 Le apropia botones a un mensaje de la forma [ ("Texto del Boton", funcion), ("def", funcion) ]
 
-### `bot.message(...).send()`
+### `bot.sendMessage(...).send()`
 
 Envía el mensaje y su teclado, si lo hay.
 
@@ -282,6 +282,18 @@ Permite agregarle botones al mensaje de la imagen (funciona exactamente igual a 
 ### `bot.sendPhoto(...).send()`
 
 Permite enviar la imagen
+
+### `bot.sendAudio(chat_id, audio, caption)`
+
+Crea un objeto de Audio
+
+### `bot.sendAudio(...).buttons([()])`
+
+Permite agregarle botones al mensaje del audio (funciona exactamente igual a los de los mensajes (comparten la clase Message))
+
+### `bot.sendAudio(...).send()`
+
+Envia el audio (con botones si los tiene)
 
 ### `bot.start(message, commands=[])`
 
