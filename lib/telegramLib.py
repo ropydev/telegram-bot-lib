@@ -52,7 +52,10 @@ class TelegramBot:
         return data["result"]
 
     def message(self, chat_id, text, parse_mode="Markdown"):
-        return Message(self, chat_id, text, parse_mode)
+        return SendMessage(self, chat_id, text, parse_mode)
+
+    def sendPhoto(self, chat_id, photo, caption = ""):
+        return SendPhoto(self, chat_id, photo, caption)
 
     def sendMessage(self, chat_id, text):
         return self._request(
@@ -336,12 +339,11 @@ class CommandContext(Context):
         self.args = parts[1:]
 
 class Message:
-    def __init__(self, bot, chat_id, text, parse_mode: str = "Markdown"):
+    def __init__(self, bot, chat_id, text):
         self.bot = bot
         self.chat_id = chat_id
         self.text = text
         self.keyboard = []
-        self.parse_mode = parse_mode
 
     def buttons(self, data):
         row = []
@@ -359,6 +361,14 @@ class Message:
         self.keyboard.append(row)
         return self
 
+class SendMessage(Message):
+    def __init__(self, bot, chat_id, text, parse_mode: str = "Markdown"):
+        self.parse_mode = parse_mode
+        self.bot = bot
+        self.chat_id = chat_id
+        self.text = text
+        self.keyboard = []
+
     def send(self):
         payload = {
             "chat_id": self.chat_id,
@@ -373,5 +383,30 @@ class Message:
 
         return self.bot._request(
             "sendMessage",
+            json=payload
+        )
+
+class SendPhoto(Message):
+    def __init__(self, bot, chat_id, photo, text):
+        self.bot = bot
+        self.chat_id = chat_id
+        self.text = text
+        self.keyboard = []
+        self.photo = photo
+
+    def send(self):
+        payload = {
+            "chat_id": self.chat_id,
+            "caption": self.text,
+            "photo": self.photo
+        }
+
+        if self.keyboard:
+            payload["reply_markup"] = {
+                "inline_keyboard": self.keyboard
+            }
+
+        return self.bot._request(
+            "sendPhoto",
             json=payload
         )

@@ -222,9 +222,21 @@ Crea un objeto `Message` para construir y enviar un mensaje con teclado inline o
 
 Le apropia botones a un mensaje de la forma [ ("Texto del Boton", funcion), ("def", funcion) ]
 
-### `Message.send()`
+### `bot.message(...).send()`
 
 Envía el mensaje y su teclado, si lo hay.
+
+### `bot.sendPhoto(chat_id, photo, caption)`
+
+Crea un objeto el cual permite enviar una imagen atravez de un link publico
+
+### `bot.sendPhoto(...).buttons([()])`
+
+Permite agregarle botones al mensaje de la imagen (funciona exactamente igual a los de los mensajes (comparten la clase Message))
+
+### `bot.sendPhoto(...).send()`
+
+Permite enviar la imagen
 
 ### `bot.start(message, commands=[])`
 
@@ -232,3 +244,41 @@ Inicia el bucle del bot, recibe el argumento message (el mensaje q se imprime en
 
 Ejemplo de array de comandos: [("/start", start), ("/help", helpMsg)]
 
+## Ejemplos de bots funcionales (el main.py se debe encontrar en la raiz del proyecto)
+
+### Generador de codigos QR
+```python
+from lib import telegramLib
+import requests
+
+bot = telegramLib.TelegramBot("TuToken")
+
+def start(ctx):
+    bot.message(ctx.chat_id, f"Hola {ctx.name}, bienvenido a {ctx.botName}\nElija la opcion deseada:")\
+        .buttons([("Mostrar Panel de ayuda", helpMsg)]).send()
+
+def helpMsg(ctx):
+    bot.message(ctx.chat_id, f"Lista de comandos:\n/start: Iniciar el bot\n/help: Mostrar panel de ayuda\n/qr <link>: Generar qr")\
+        .send()
+
+def genQr(ctx, url):
+    params = {
+        "size": "200x200",
+        "data": url
+    }
+    response = requests.get("https://api.qrserver.com/v1/create-qr-code/", params=params)
+    bot.sendPhoto(ctx.chat_id, response.url, f"Aqui tiene el codigo QR para la url {url}")\
+        .buttons([("Back", start)])\
+        .send()
+
+commands = [
+    ("/start", start),
+    ("/help", helpMsg),
+    ("/qr", genQr)
+]
+bot.start("Bot iniciado", commands=commands)
+```
+
+Resultado:
+
+<img src="./examples/qrgen_bot.png">
