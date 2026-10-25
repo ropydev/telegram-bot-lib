@@ -1,15 +1,8 @@
 # TelegramBot
 
-Una pequeña librería de Python para interactuar con la [Telegram Bot API](https://core.telegram.org/bots/api) mediante una interfaz orientada a objetos. Permite consultar la información del bot, enviar mensajes y tener un sistema de comandos.
+Una pequeña librería de Python para crear y mantener bots de telegram facilmente
 
 > **Estado del proyecto:** versión inicial / en desarrollo.
-
-## Características
-
-- Obtener los datos del bot con `getInfo()`.
-- Enviar mensajes de texto a un ID especifica.
-- Crear botones inline con `buttons()` en un mensaje.
-- Permite tener un sistema de comandos que permita interactuar con el bot
 
 ## Requisitos
 
@@ -196,6 +189,28 @@ bot.start("Bot iniciado", commands=commands) # inicia el bot
 
 La clase a la que pertenece el metodo sendAudio es hija de la clase Message (al igual que el metodo message y el metodo sendPhoto) asi que comparten el metodo buttons y send y permite que los audios, imagenes y mensajes tengan botones de la misma manera
 
+## Enviar cualquier archivo local
+```python
+from lib import telegramLib # Importa la libreria
+
+bot = telegramLib.TelegramBot("TuToken") # Genera el bot
+
+def start(ctx):
+    bot.sendDocument(ctx.chat_id, "ruta_relativa_del_archivo.sabradios", "Hola Mundo").send() # Crea la funcion del comando
+
+commands = [
+    ("/start", start) # Indica que el comando /start llamara a la funcion start()
+]
+
+bot.start("Bot iniciado", commands=commands) # Inicia el bot y le indica su lista de comandos
+```
+
+### Resultado
+
+<img src="./examples/senddocument.png">
+
+Al igual que las otras funciones adivina que... tiene soporte para botones (yupii)
+
 ## Usar el contexto
 
 Las funciones reciben un objeto `ctx` de tipo `CallbackContext` o `CommandContext`. Este objeto contiene información de la pulsación o comando, informacion del usuario y métodos auxiliares.
@@ -294,6 +309,10 @@ Permite agregarle botones al mensaje del audio (funciona exactamente igual a los
 ### `bot.sendAudio(...).send()`
 
 Envia el audio (con botones si los tiene)
+
+### `bot.sendDocument(chat_id, relative_path, caption)`
+
+Que pasa si quieres enviar un archivo que tienes en local? Puedes usar el metodo sendDocument, te permite enviar cualquier documento que tengas en local, la ubicacion tiene que ser relativa (al igual que todas las funciones que envian archivos, tiene soporte para botones)
 
 ### `bot.start(message, commands=[])`
 

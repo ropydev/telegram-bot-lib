@@ -2,6 +2,8 @@ import requests
 import uuid
 import time
 import inspect
+import os
+import json
 
 
 class TelegramBot:
@@ -59,6 +61,9 @@ class TelegramBot:
 
     def sendAudio(self, chat_id, audio, caption=""):
         return SendAudio(self, chat_id, audio, caption)
+
+    def sendDocument(self, chat_id, path, caption=""):
+        return SendDocument(self, chat_id, path, caption)
 
     def _register_callback(self, function):
         callback_id = uuid.uuid4().hex
@@ -422,3 +427,29 @@ class SendAudio(Message):
             "sendAudio",
             json=payload
         )
+
+class SendDocument(Message):
+    def __init__(self, bot, chat_id, path, text):
+        self.bot = bot
+        self.chat_id = chat_id
+        self.text = text
+        self.keyboard = []
+        self.path = path
+
+    def send(self):
+        payload = {
+            "chat_id": self.chat_id,
+            "caption": self.text
+        }
+
+        if self.keyboard:
+            payload["reply_markup"] = json.dumps({
+                "inline_keyboard": self.keyboard
+            })
+
+        with open(os.path.abspath(self.path), "rb") as f:
+            return self.bot._request(
+                "sendDocument",
+                data=payload,
+                files={"document": f}
+            )
