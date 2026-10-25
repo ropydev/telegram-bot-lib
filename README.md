@@ -144,7 +144,7 @@ bot.start("Bot iniciado", commands=commands) # inicia el bot e indica sus comand
 
 <img src="./examples/inline_keyboard2rows.png">
 
-## Enviar una imagen atravez de un link
+## Enviar una imagen atravez de un link o id
 
 ```python
 from lib import telegramLib
@@ -168,7 +168,7 @@ bot.start("Bot iniciado", commands=commands)
 
 (tambien se le pueden atribuir botones y todo lo de los botones)
 
-## Enviar un audio atravez de un link
+## Enviar un audio atravez de un link o id
 ```python
 from lib import telegramLib # importa la libreria
 

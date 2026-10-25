@@ -121,6 +121,19 @@ class TelegramBot:
             }
         )
 
+    def getUserImage(self, user_id, limit=1):
+        response = requests.get(
+            self.url+"/getUserProfilePhotos",
+            data={
+                "user_id": user_id,
+                "limit": limit
+            }
+        )
+        photos = []
+        for photo in response.json()['result']['photos'][0]:
+            photos.append(photo['file_id'])
+        return photos[limit:]
+
     def start(self, startMsg="", commands=None):
         commands = dict(commands or [])
 
