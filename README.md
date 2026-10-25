@@ -151,6 +151,30 @@ bot.start("Bot iniciado", commands=commands) # inicia el bot e indica sus comand
 
 <img src="./examples/inline_keyboard2rows.png">
 
+## Enviar una imagen atravez de un link
+
+```python
+from lib import telegramLib
+import requests
+
+bot = telegramLib.TelegramBot("TuToken")
+
+def sendPhoto(ctx):
+    bot.sendPhoto(ctx.chat_id, "https://avatars.githubusercontent.com/u/291429318?v=4").send()
+
+
+commands = [
+    ("/sendphoto", sendPhoto)
+]
+bot.start("Bot iniciado", commands=commands)
+```
+
+Resultado:
+
+<img src="./examples/sendphoto.png">
+
+(tambien se le pueden atribuir botones y todo lo de los botones)
+
 ## Usar el contexto
 
 Las funciones reciben un objeto `ctx` de tipo `CallbackContext` o `CommandContext`. Este objeto contiene información de la pulsación o comando, informacion del usuario y métodos auxiliares.
